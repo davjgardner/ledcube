@@ -18,7 +18,7 @@ Shift registers will be used to achieve the needed 72 data lines.
 
 Tests so far are for a 3x3x3 cube which is fully built.
 
-`cubetest1` is a basic test program which cycles through the LEDs with all data channels connected directly to the Arduino
-`cubetest2` sets up a system for displaying a full cube state - strobing the layers and displaying an animation. It sets up a recurring timer interrupt to change animation frames. It attempts to use AVR PORT registers, but these were not mapped as expected on the Arduino Micro
-`cubetest3` is a simple test for a cube controlled by shift registers
-`cubetest4` implements the functionality of `cubetest2` on a shift register architecture and has some full programs
+- `cubetest1` is a basic test program which cycles through the LEDs with all data channels connected directly to the Arduino
+- `cubetest2` sets up a system for displaying a full cube state - strobing the layers and displaying an animation. It sets up a recurring timer interrupt to change animation frames. It attempts to use AVR PORT registers, but these were not mapped as expected on the Arduino Micro
+- `cubetest3` is a simple test for a cube controlled by shift registers
+- `cubetest4` implements the functionality of `cubetest2` on a shift register architecture and has some full programs
