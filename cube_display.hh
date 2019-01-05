@@ -62,28 +62,28 @@ class RandomSnakeDisplay : CubeDisplay {
 #define MAX_LEN 10
 
 private:
-    int len;
+    uint8_t len;
 
     // circular snake buffer
     /* has to be MAX_LEN + 1 so that we can still access
          old tail after adding new head even for a MAX_LEN snake */
-    int snake[MAX_LEN + 1][3];
+    uint8_t snake[MAX_LEN + 1][3];
     unsigned char head = 0; // TODO: uint8_t
 
     // speed in milliseconds per step
-    int speed;
-    int t;
+    uint32_t speed;
+    uint32_t t;
 
     CubeState state;
 
 public:
-    RandomSnakeDisplay(int len, int speed): len{len}, speed{speed} {
+    RandomSnakeDisplay(uint8_t len, uint32_t speed): len{len}, speed{speed} {
         srand(20190104);
 
         snake[0][0] = rand() % CX;
         snake[0][1] = rand() % CY;
         snake[0][2] = rand() % CZ;
-        for (int i = 0; i < len; ++i) {
+        for (uint8_t i = 0; i < len; ++i) {
             snake[i][0] = snake[0][0];
             snake[i][1] = snake[0][1];
             snake[i][2] = snake[0][2];
@@ -96,8 +96,8 @@ public:
             t -= speed;
             head = (head + 1) % len;
 
-            int delta = (rand() % 2) ? 1 : -1;
-            int axis = rand() % 3;
+            int8_t delta = (rand() % 2) ? 1 : -1;
+            int8_t axis = rand() % 3;
             snake[head][axis] += delta;
 
             // bounds check
@@ -108,7 +108,7 @@ public:
             // update state
             state.turn_on(snake[head][0], snake[head][1], snake[head][2]);
             // this would be (head - len + 1), but we want to turn off old tail
-            unsigned char tail = (head - len) % len;
+            uint8_t tail = (head - len) % len;
             state.turn_off(snake[tail][0], snake[tail][1], snake[tail][2]);
         }
     }
@@ -131,8 +131,8 @@ public:
 class RandomFieldDisplay : CubeDisplay {
 private:
     // milliseconds per update
-    int speed;
-    int t;
+    uint32_t speed;
+    uint32_t t;
 
     CubeState state;
 
@@ -142,7 +142,7 @@ public:
      * `speed` is the number of milliseconds per light toggle
      * `init_prop` [0, 100) is the percentage of lights which are initially on
      */
-    RandomFieldDisplay(int speed, int init_prop) : speed{speed} {
+    RandomFieldDisplay(uint32_t speed, uint32_t init_prop) : speed{speed} {
         srand(20180105);
         for (int x = 0; x < CX; ++x) {
             for (int y = 0; y < CY; ++y) {
@@ -159,9 +159,9 @@ public:
         t += dt;
         while (t >= speed) {
             t -= speed;
-            int x = rand() % CX;
-            int y = rand() % CY;
-            int z = rand() % CZ;
+            uint8_t x = rand() % CX;
+            uint8_t y = rand() % CY;
+            uint8_t z = rand() % CZ;
             state.toggle(x, y, z);
         }
     }
