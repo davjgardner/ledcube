@@ -2,19 +2,39 @@
 #define CUBE_DISPLAY_HH
 
 #include <cstdlib>
+#include <cstdint>
 
 #include "cube_defs.h"
 
-struct CubeState {
+class CubeState {
+private:
     // TODO: some state representation here:
     short **state;
 
+public:
+    // Sets all lights to off
+    void zero() {
+        // TODO
+    }
+
+    /* The following functions, when called with out-of-bounds coordinates,
+         will do nothing. */
     void turn_on(int x, int y, int z) {
         // TODO
     }
 
     void turn_off(int x, int y, int z) {
         // TODO
+    }
+
+    void toggle(int x, int y, int z) {
+        // TODO
+    }
+
+    // Returns false if arguments out of bounds.
+    bool is_on(int x, int y, int z) {
+        // TODO
+        return false;
     }
 };
 
@@ -101,6 +121,115 @@ public:
          *
          * then this function just returns pointer to global state
          */
+        return &state;
+    }
+};
+
+/**
+ * Random field of lights. A light turns on or off every `speed` milliseconds
+ */
+class RandomFieldDisplay : CubeDisplay {
+private:
+    // milliseconds per update
+    int speed;
+    int t;
+
+    CubeState state;
+
+public:
+
+    /**
+     * `speed` is the number of milliseconds per light toggle
+     * `init_prop` [0, 100) is the percentage of lights which are initially on
+     */
+    RandomFieldDisplay(int speed, int init_prop) : speed{speed} {
+        srand(20180105);
+        for (int x = 0; x < CX; ++x) {
+            for (int y = 0; y < CY; ++y) {
+                for (int z = 0; z < CZ; ++z) {
+                    if (rand() % 100 < init_prop) {
+                        state.turn_on(x, y, z);
+                    }
+                }
+            }
+        }
+    }
+
+    void update(int dt) {
+        t += dt;
+        while (t >= speed) {
+            t -= speed;
+            int x = rand() % CX;
+            int y = rand() % CY;
+            int z = rand() % CZ;
+            state.toggle(x, y, z);
+        }
+    }
+
+    CubeState *get_frame() {
+        return &state;
+    }
+};
+
+class RainDisplay : CubeDisplay {
+private:
+    int iv; // initial inverse velocity of drops (in ticks per light)
+    int g; // gravity (acceleration of rain) TODO
+    uint8_t tail; // rain streak length
+    uint32_t tick; // how often to update (milliseconds)
+    uint8_t density; // (0, 100) likelyhood of new drop each tick
+
+    int8_t dpos[CSIZE][CSIZE];
+
+    CubeState state;
+    uint32_t t;
+
+public:
+    RainDisplay(int init_iv, int g, uint8_t density)
+        : iv{init_iv}, g{g}, density{density} {
+        srand(20180105);
+        state.zero();
+        for (uint8_t x = 0; x < CSIZE; ++x) {
+            for (uint8_t y = 0; y < CSIZE; ++y) {
+                dpos[x][y] = -1;
+            }
+        }
+    }
+
+    void update(int dt) {
+        t += dt;
+        while (t >= tick) {
+            t -= tick;
+
+            // update drops
+            for (uint8_t x = 0; x < CSIZE; ++x) {
+                for (uint8_t y = 0; y < CSIZE; ++y) {
+                    if (dpos[x][y] >= 0) {
+                        // turn off old top, turn on new bottom
+                        state.turn_off(x, y, dpos[x][y]);
+                        state.turn_on(x, y, dpos[x][y] - tail);
+
+                        dpos[x][y]--;
+                    }
+                }
+            }
+
+            // maybe create new drop
+            if (rand() % 100 < density) {
+                uint8_t x, y;
+                // find an empty column
+                do {
+                    x = rand() % CSIZE;
+                    y = rand() % CSIZE;
+                } while (dpos[x][y] != -1);
+                // position is represented by the top of the drop
+                // new drop will appear next update
+                dpos[x][y] = CSIZE - 1 + tail - 1;
+            }
+        }
+    }
+
+    CubeState *get_frame() {
         return &state;
     }
 };
