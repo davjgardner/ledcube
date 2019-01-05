@@ -173,7 +173,7 @@ public:
 
 class RainDisplay : CubeDisplay {
 private:
-    int iv; // initial inverse velocity of drops (in ticks per light)
+    uint32_t iv; // initial inverse velocity of drops (in ticks per light)
     int g; // gravity (acceleration of rain) TODO
     uint8_t tail; // rain streak length
     uint32_t tick; // how often to update (milliseconds)
@@ -183,9 +183,10 @@ private:
 
     CubeState state;
     uint32_t t;
+    uint32_t tick_count = 0;
 
 public:
-    RainDisplay(int init_iv, int g, uint8_t density)
+    RainDisplay(uint32_t init_iv, int g, uint8_t density)
         : iv{init_iv}, g{g}, density{density} {
         srand(20180105);
         state.zero();
@@ -200,20 +201,22 @@ public:
         t += dt;
         while (t >= tick) {
             t -= tick;
+            tick_count++;
 
-            // update drops
-            for (uint8_t x = 0; x < CSIZE; ++x) {
-                for (uint8_t y = 0; y < CSIZE; ++y) {
-                    if (dpos[x][y] >= 0) {
-                        // turn off old top, turn on new bottom
-                        state.turn_off(x, y, dpos[x][y]);
-                        state.turn_on(x, y, dpos[x][y] - tail);
+            while (tick_count >= iv) {
+                // update drops
+                for (uint8_t x = 0; x < CSIZE; ++x) {
+                    for (uint8_t y = 0; y < CSIZE; ++y) {
+                        if (dpos[x][y] >= 0) {
+                            // turn off old top, turn on new bottom
+                            state.turn_off(x, y, dpos[x][y]);
+                            state.turn_on(x, y, dpos[x][y] - tail);
 
-                        dpos[x][y]--;
+                            dpos[x][y]--;
+                        }
                     }
                 }
             }
-
             // maybe create new drop
             if (rand() % 100 < density) {
                 uint8_t x, y;
@@ -223,8 +226,8 @@ public:
                     y = rand() % CSIZE;
                 } while (dpos[x][y] != -1);
                 // position is represented by the top of the drop
-                // new drop will appear next update
                 dpos[x][y] = CSIZE - 1 + tail - 1;
+                state.turn_on(x, y, CSIZE - 1);
             }
         }
     }
